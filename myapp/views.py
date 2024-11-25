@@ -15,16 +15,13 @@ topics=[
 
 def search(request):
     global topics
-    # 검색어 가져오기 및 공백 제거
     query = request.GET.get('query', '').strip()
 
-    # 검색어 필터링
     filtered_topics = [
         topic for topic in topics
         if query.lower() in topic['title'].lower() or query.lower() in topic['subtitle'].lower() or query.lower() in topic['body'].lower()
     ]
 
-    # 검색 결과가 없을 경우 메시지 출력
     if not filtered_topics:
         article = f'<h2>검색 결과가 없습니다: "{escape(query)}"</h2>'
         contextUI = ''
@@ -42,7 +39,6 @@ def search(request):
             </div>
         ''' for topic in filtered_topics)
 
-    # 필터링된 결과만 전달
     return HttpResponse(HTMLTemplate(article, contextUI=contextUI, filtered_topics=filtered_topics, query=query))
 
 
