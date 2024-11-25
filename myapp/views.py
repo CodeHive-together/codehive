@@ -9,7 +9,7 @@ topics=[
 'body':'실험4000 실험 함수란 특정한 작업을 수행하기 위해서 필요한 명령어들을 묶어놓은 것이다. 함수가 호출되면 함수에서 정의된 명령문을 실행한 후, 다시 원래 실행하던 코드로...'},
     {'id':2, 'title':'10798 세로읽기', 'subtitle': '공통 문제', 
 'body':'Str = [input() for _ in range(5)]<br>Len = [len(i) for i in range Str]...'},
-    {'id':3, 'title':'10845 큐','subtitle': '개인 문제',
+    {'id':3, 'title':'10845 큐큐큐','subtitle': '개인 문제',
 'body':'import sys<br>n = int(sys.stdin.readline())...'},
 ]
 
