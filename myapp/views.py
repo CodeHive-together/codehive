@@ -13,28 +13,38 @@ topics=[
 'body':'import sys<br>n = int(sys.stdin.readline())...'},
 ]
 
-
 def search(request):
     global topics
-    query = request.GET.get('query', '')
-    filtered_topics = [topic for topic in topics if query.lower() in topic['title'].lower() or query.lower() in topic['body'].lower()]
+    # 검색어 가져오기 및 공백 제거
+    query = request.GET.get('query', '').strip()
 
-    ol = ''
-    for topic in filtered_topics:
-        ol += f'''
-        <div class="card"> 
-            <div class="Title">{topic["subtitle"]}</div>
-            <div class="Header">{topic["title"]}</div>
-            <div class="Body">{topic["body"]}</div>
-            <div class="Buttons">
-                <a href="/update/{topic['id']}" class="btc">수정</a>
-                <a href="/read/{topic['id']}" class="btc">보기</a> 
+    # 검색어 필터링
+    filtered_topics = [
+        topic for topic in topics
+        if query.lower() in topic['title'].lower() or query.lower() in topic['subtitle'].lower() or query.lower() in topic['body'].lower()
+    ]
+
+    # 검색 결과가 없을 경우 메시지 출력
+    if not filtered_topics:
+        article = f'<h2>검색 결과가 없습니다: "{escape(query)}"</h2>'
+        contextUI = ''
+    else:
+        article = ''
+        contextUI = ''.join(f'''
+            <div class="card"> 
+                <div class="Title">{escape(topic["subtitle"])}</div>
+                <div class="Header">{escape(topic["title"])}</div>
+                <div class="Body">{escape(topic["body"])}</div>
+                <div class="Buttons">
+                    <a href="/update/{topic['id']}" class="btc">수정</a>
+                    <a href="/read/{topic['id']}" class="btc">보기</a> 
+                </div>
             </div>
-        </div>
-        '''
+        ''' for topic in filtered_topics)
 
-    article = f'<h2>검색 결과: "{escape(query)}"</h2>'
-    return HttpResponse(HTMLTemplate(article, contextUI=ol))
+    # 필터링된 결과만 전달
+    return HttpResponse(HTMLTemplate(article, contextUI=contextUI, filtered_topics=filtered_topics, query=query))
+
 
 def achievement(request):
     return render(request, 'myapp/achievement.html')
@@ -46,21 +56,39 @@ def index(request):
     '''
     return HttpResponse(HTMLTemplate(article))
 
-def HTMLTemplate(articleTag, id=None, contextUI=''):
+def HTMLTemplate(articleTag, id=None, contextUI='', filtered_topics=None, query=''):
     global topics
+
+    if filtered_topics is None:
+        filtered_topics = topics
+
     ol=''
-    for topic in topics:
-        ol+= f'''
-        <div class="card"> 
-            <div class="Title">{topic["subtitle"]}</div>
-            <div class="Header">{topic["title"]}</div>
-            <div class="Body">{topic["body"]}</div>
-            <div class="Buttons">
-                <a href="/update/{topic['id']}" class="btc">수정</a>
-                <a href="/read/{topic['id']}" class="btc">보기</a> 
+    if filtered_topics:
+        for topic in filtered_topics:
+            ol+= f'''
+            <div class="card"> 
+                <div class="Title">{topic["subtitle"]}</div>
+                <div class="Header">{topic["title"]}</div>
+                <div class="Body">{topic["body"]}</div>
+                <div class="Buttons">
+                    <a href="/update/{topic['id']}" class="btc">수정</a>
+                    <a href="/read/{topic['id']}" class="btc">보기</a> 
+                </div>
             </div>
-        </div>
-        '''
+            '''
+    else:
+        for topic in topics:
+            ol+= f'''
+            <div class="card"> 
+                <div class="Title">{topic["subtitle"]}</div>
+                <div class="Header">{topic["title"]}</div>
+                <div class="Body">{topic["body"]}</div>
+                <div class="Buttons">
+                    <a href="/update/{topic['id']}" class="btc">수정</a>
+                    <a href="/read/{topic['id']}" class="btc">보기</a> 
+                </div>
+            </div>
+            '''
 
     contextUI = ''
 
@@ -151,7 +179,7 @@ def HTMLTemplate(articleTag, id=None, contextUI=''):
     <h1><a href="/">게시판</a></h1><br>
     
     <form action="/search/" method="get">
-        <input type="text" name="query" class="search" placeholder="검색어를 입력하세요">
+        <input type="text" name="query" class="search" placeholder="검색어를 입력하세요" value="{escape(query)}">
         <button type="submit" class="search-button">검색</button>
     </form>
     
