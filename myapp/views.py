@@ -5,12 +5,12 @@ from django.utils.html import escape
 
 nextId=4
 topics=[
-    {'id':1, 'title':'10-1', 'subtitle': '강의 리뷰', 
-'body':'실험4000 실험 함수란 특정한 작업을 수행하기 위해서 필요한 명령어들을 묶어놓은 것이다. 함수가 호출되면 함수에서 정의된 명령문을 실행한 후, 다시 원래 실행하던 코드로...'},
-    {'id':2, 'title':'10798 세로읽기', 'subtitle': '공통 문제', 
-'body':'Str = [input() for _ in range(5)]<br>Len = [len(i) for i in range Str]...'},
-    {'id':3, 'title':'10845 큐큐큐큐큐큐큐','subtitle': '개인 문제',
-'body':'import sys<br>n = int(sys.stdin.readline())...'},
+    {'id':1, 'title':'웹 애플리케이션', 'subtitle': '강의 리뷰', 
+'body':'웹 서버에 접속할 때 미리 준비된 페이지로 접속하게 된다. 이를 static(정적)이라고 한다. 반면 웹 애플리케이션 서버는 요청이 들어올 때마다 필요한 정보를 만들어 내는 기능을 갖추고 있어 dynamic(동적)이라고 한다. 웹 서버는 속도가 빠르고 사용이 간편하다. '},
+    {'id':2, 'title':'백준 2839 설탕 배달', 'subtitle': '공통 문제', 
+'body':'N=int(input()) def beg(N): for i in range(N//5, -1, -1): left=N-(i*5) if left%3==0: return i+left//3 return -1 print(beg(N))'},
+    {'id':3, 'title':'백준 1330 두 수 비교하기','subtitle': '개인 문제',
+'body':'A,B=map(int,input().split()) if A>B: print(">") elif A<B: print("<") else: print("==")'},
 ]
 
 def search(request):
@@ -62,14 +62,20 @@ def HTMLTemplate(articleTag, id=None, contextUI='', filtered_topics=None, query=
     if filtered_topics is None:
         filtered_topics = topics
 
-    ol=''
+    ol = ''
     if filtered_topics:
         for topic in filtered_topics:
-            ol+= f'''
+            body_preview = escape(topic["body"])
+            if len(body_preview) > 40:
+                body_preview = body_preview[:40] + '...'
+            else:
+                body_preview = body_preview
+            
+            ol += f'''
             <div class="card"> 
                 <div class="Title">{topic["subtitle"]}</div>
                 <div class="Header">{topic["title"]}</div>
-                <div class="Body">{topic["body"]}</div>
+                <div class="Body">{body_preview}</div>
                 <div class="Buttons">
                     <a href="/update/{topic['id']}" class="btc">수정</a>
                     <a href="/read/{topic['id']}" class="btc">보기</a> 
@@ -78,11 +84,17 @@ def HTMLTemplate(articleTag, id=None, contextUI='', filtered_topics=None, query=
             '''
     else:
         for topic in topics:
-            ol+= f'''
+            body_preview = escape(topic["body"])
+            if len(body_preview) > 40:
+                body_preview = body_preview[:40] + '...'
+            else:
+                body_preview = body_preview
+
+            ol += f'''
             <div class="card"> 
                 <div class="Title">{topic["subtitle"]}</div>
                 <div class="Header">{topic["title"]}</div>
-                <div class="Body">{topic["body"]}</div>
+                <div class="Body">{body_preview}</div>
                 <div class="Buttons">
                     <a href="/update/{topic['id']}" class="btc">수정</a>
                     <a href="/read/{topic['id']}" class="btc">보기</a> 
