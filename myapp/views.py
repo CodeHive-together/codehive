@@ -13,8 +13,31 @@ topics=[
 'body':'import sys<br>n = int(sys.stdin.readline())...'},
 ]
 
+
+def search(request):
+    global topics
+    query = request.GET.get('query', '')
+    filtered_topics = [topic for topic in topics if query.lower() in topic['title'].lower() or query.lower() in topic['body'].lower()]
+
+    ol = ''
+    for topic in filtered_topics:
+        ol += f'''
+        <div class="card"> 
+            <div class="Title">{topic["subtitle"]}</div>
+            <div class="Header">{topic["title"]}</div>
+            <div class="Body">{topic["body"]}</div>
+            <div class="Buttons">
+                <a href="/update/{topic['id']}" class="btc">수정</a>
+                <a href="/read/{topic['id']}" class="btc">보기</a> 
+            </div>
+        </div>
+        '''
+
+    article = f'<h2>검색 결과: "{escape(query)}"</h2>'
+    return HttpResponse(HTMLTemplate(article, contextUI=ol))
+
 def achievement(request):
-    return render(request, 'myapp/achievement.html')  #성과(3번) 경로
+    return render(request, 'myapp/achievement.html')
 
 def index(request):
     article='''
@@ -38,8 +61,7 @@ def HTMLTemplate(articleTag, id=None, contextUI=''):
             </div>
         </div>
         '''
-    
-    # 수정 페이지에서는 삭제 버튼만 표시
+
     contextUI = ''
 
     return f'''
@@ -127,6 +149,12 @@ def HTMLTemplate(articleTag, id=None, contextUI=''):
     <body>
     이동하기: 게시판 / <a href="/achievements/">성과 가시화</a> / 정리 업로드
     <h1><a href="/">게시판</a></h1><br>
+    
+    <form action="/search/" method="get">
+        <input type="text" name="query" class="search" placeholder="검색어를 입력하세요">
+        <button type="submit" class="search-button">검색</button>
+    </form>
+    
     <a href="/create/" class="btc"><b>글 작성</b></a>
     <ul>
         {ol}

@@ -1,0 +1,40 @@
+def HTMLTemplate(articleTag, id=None, contextUI=''):
+    global topics
+    ol = ''
+    for topic in topics:
+        ol += f'''
+        <div class="card"> 
+            <div class="Title">{topic["subtitle"]}</div>
+            <div class="Header">{topic["title"]}</div>
+            <div class="Body">{topic["body"]}</div>
+            <div class="Buttons">
+                <a href="/update/{topic['id']}" class="btc">수정</a>
+                <a href="/read/{topic['id']}" class="btc">보기</a> 
+            </div>
+        </div>
+        '''
+
+    return f'''
+    <html>
+    <head>
+        <style>
+            /* 기존 스타일 유지 */
+        </style>
+    </head>
+    <body>
+    이동하기: 게시판 / <a href="/achievements/">성과 가시화</a> / 정리 업로드
+    <h1><a href="/">게시판</a></h1><br>
+    <form action="/search/" method="get">
+        <input type="text" name="query" placeholder="검색어를 입력하세요">
+        <input type="submit" value="검색">
+    </form>
+    <a href="/create/" class="btc"><b>글 작성</b></a>
+    <ul>
+        {ol}
+    </ul>
+    {articleTag}
+    <ul>
+        {contextUI}
+    </ul>
+    </body>
+    </html>'''
