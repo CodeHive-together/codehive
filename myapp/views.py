@@ -45,6 +45,9 @@ def search(request):
 def achievement(request):
     return render(request, 'myapp/achievement.html')
 
+def search(request):
+    return render(request, 'myapp/find.html')
+
 def index(request):
     article='''
     <h2>이 곳은 게시판 입니다.</h2>
@@ -183,7 +186,7 @@ def HTMLTemplate(articleTag, id=None, contextUI='', filtered_topics=None, query=
         </style>
     </head>
     <body>
-    이동하기: 게시판 / <a href="/achievements/">성과 가시화</a> / 정리 업로드
+    이동하기: 게시판 / <a href="/achievements/">성과 가시화</a> / <a href="/search/">정리 업로드</a>
     <h1><a href="/">게시판</a></h1><br>
     
     <form action="/search/" method="get">
