@@ -1,40 +1,284 @@
-def HTMLTemplate(articleTag, id=None, contextUI=''):
-    global topics
-    ol = ''
-    for topic in topics:
-        ol += f'''
-        <div class="card"> 
-            <div class="Title">{topic["subtitle"]}</div>
-            <div class="Header">{topic["title"]}</div>
-            <div class="Body">{topic["body"]}</div>
-            <div class="Buttons">
-                <a href="/update/{topic['id']}" class="btc">수정</a>
-                <a href="/read/{topic['id']}" class="btc">보기</a> 
-            </div>
-        </div>
-        '''
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* 공통 스타일 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f9f9f9;
+        }
 
-    return f'''
-    <html>
-    <head>
-        <style>
-            /* 기존 스타일 유지 */
-        </style>
-    </head>
-    <body>
-    이동하기: 게시판 / <a href="/achievements/">성과 가시화</a> / 정리 업로드
-    <h1><a href="/">게시판</a></h1><br>
-    <form action="/search/" method="get">
-        <input type="text" name="query" placeholder="검색어를 입력하세요">
-        <input type="submit" value="검색">
-    </form>
-    <a href="/create/" class="btc"><b>글 작성</b></a>
-    <ul>
-        {ol}
-    </ul>
-    {articleTag}
-    <ul>
-        {contextUI}
-    </ul>
-    </body>
-    </html>'''
+        .container {
+            display: flex;
+            width: 100%;
+        }
+
+        /* 사이드바 스타일 */
+        .sidebar {
+            background-color: #f4f4f4;
+            width: 250px;
+            padding: 20px;
+            display: flex;
+            flex-direction: row; /* 가로로 배치 */
+            flex-shrink: 0;
+        }
+
+        /* 메뉴 항목 스타일 */
+        .menu {
+            display: flex;
+            flex-direction: column;
+            padding-right: 30px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .menu li {
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .menu li:hover {
+            background-color: #ddd;
+        }
+
+        /* 이름 항목 스타일 */
+        .name-list {
+            display: flex;
+            flex-direction: column;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            margin-left: 40px; /* 점선과 이름 항목 사이의 간격을 넓힘 */
+        }
+
+        .name-list li {
+            font-size: 16px;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+        /* 메뉴와 이름 항목을 구분하는 세로 점선 */
+        .sidebar .menu {
+            border-right: 2px dotted #bbb;
+            padding-right: 20px;
+        }
+
+        /* 선택된 메뉴 항목 스타일 */
+        .selected {
+            background-color: #c0c0c0;
+            color: white;
+        }
+
+        /* 메인 콘텐츠 스타일 */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            position: relative;
+        }
+
+        #add-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            display: none; /* 첫 화면에서 버튼 숨기기 */
+        }
+
+        /* 입력 폼 스타일 */
+        .input-form {
+            display: none;
+            flex-direction: column;
+            margin-top: 20px;
+        }
+
+        .input-form textarea {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            height: 100px;
+            resize: none;
+            white-space: pre-wrap; /* 줄바꿈을 적용 */
+        }
+
+        .input-form button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .input-form button:hover {
+            background-color: #218838;
+        }
+
+        .content-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            white-space: pre-wrap; /* 줄바꿈이 그대로 적용되도록 설정 */
+        }
+
+        /* 뒤로가기 버튼 스타일 */
+        #back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #808080; /* 회색 */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #back-button:hover {
+            background-color: #616161; /* 어두운 회색 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 사이드 메뉴 -->
+        <aside class="sidebar">
+            <!-- 메뉴 항목 -->
+            <ul class="menu">
+                <li onclick="selectMenu(this, '강의 리뷰')">강의 리뷰</li>
+                <li onclick="selectMenu(this, '퀴즈')">퀴즈</li>
+                <li onclick="selectMenu(this, '공통 문제')">공통 문제</li>
+                <li onclick="selectMenu(this, '개인 문제')">개인 문제</li>
+            </ul>
+
+            <!-- 이름 항목 -->
+            <ul class="name-list">
+                <li onclick="selectName(this, '김성희')">김성희</li>
+                <li onclick="selectName(this, '박호연')">박호연</li>
+                <li onclick="selectName(this, '이수진')">이수진</li>
+                <li onclick="selectName(this, '최민영')">최민영</li>
+            </ul>
+        </aside>
+
+        <!-- 메인 콘텐츠 -->
+        <main class="main-content">
+            <div id="content-area">
+                <!-- 선택된 메뉴와 이름에 따른 콘텐츠 표시 -->
+            </div>
+
+            <!-- 내용 추가 폼 -->
+            <div class="input-form" id="input-form">
+                <textarea id="user-input" placeholder="내용을 입력하세요" onkeydown="handleKeyDown(event)"></textarea>
+                <button onclick="saveContent()">저장</button>
+            </div>
+
+            <button id="add-button" onclick="toggleInputForm()">+</button>
+            <!-- 뒤로가기 버튼 -->
+            <button id="back-button" onclick="goBack()">뒤로 가기</button>
+        </main>
+    </div>
+
+    <script>
+        let selectedMenu = "";
+        let selectedName = "";
+
+        function selectMenu(element, menu) {
+            document.querySelectorAll('.menu li').forEach(li => li.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedMenu = menu;
+            updateContentArea();
+            toggleAddButton(); // 메뉴 선택 후 + 버튼 표시
+        }
+
+        function selectName(element, name) {
+            document.querySelectorAll('.name-list li').forEach(li => li.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedName = name;
+            updateContentArea();
+            toggleAddButton(); // 이름 선택 후 + 버튼 표시
+        }
+
+        function updateContentArea() {
+            const contentArea = document.getElementById("content-area");
+            if (selectedMenu && selectedName) {
+                contentArea.innerHTML = `<h2>${selectedMenu} - ${selectedName}</h2><div id="content-list"></div>`;
+            }
+        }
+
+        function toggleAddButton() {
+            const addButton = document.getElementById("add-button");
+            if (selectedMenu && selectedName) {
+                addButton.style.display = "block"; // 메뉴와 이름 선택 시 버튼 보이기
+            } else {
+                addButton.style.display = "none"; // 메뉴나 이름을 선택하지 않으면 버튼 숨기기
+            }
+        }
+
+        function toggleInputForm() {
+            const form = document.getElementById("input-form");
+            if (form.style.display === "flex") {
+                form.style.display = "none";
+            } else {
+                form.style.display = "flex";
+            }
+        }
+
+        function handleKeyDown(event) {
+            // Enter 눌렀을 때 줄바꿈 처리
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const textarea = document.getElementById('user-input');
+                textarea.value += '\n'; // Enter 키로 줄바꿈 추가
+            }
+        }
+
+        function saveContent() {
+            const userInput = document.getElementById("user-input").value.trim();
+            if (!userInput) {
+                alert("내용을 입력하세요!");
+                return;
+            }
+
+            if (!selectedMenu || !selectedName) {
+                alert("먼저 메뉴와 이름을 선택하세요!");
+                return;
+            }
+
+            const contentArea = document.getElementById("content-list");
+            const newContent = document.createElement("div");
+            newContent.classList.add("content-item");
+            newContent.innerHTML = userInput.replace(/\n/g, '<br>'); // 줄바꿈을 <br>로 변환하여 저장
+            contentArea.appendChild(newContent);
+
+            document.getElementById("user-input").value = "";
+            toggleInputForm();  // 입력 폼 숨기기
+        }
+
+        function goBack() {
+            // 뒤로가기 버튼 클릭 시 이전 화면으로 이동
+            window.history.back();
+        }
+    </script>
+</body>
+</html>
